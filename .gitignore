@@ -88,4 +88,8 @@ modules.xml
 # Sonarlint plugin
 .idea/sonarlint
 
+build_file_checksums
+
+
+__pycache__/
 # End of https://www.gitignore.io/api/pycharm+all
