@@ -1,3 +1,4 @@
+from typing import Tuple
 import torch
 import torch.nn as nn
 
@@ -39,7 +40,7 @@ def masked_max(vector: torch.Tensor,
 			   mask: torch.Tensor,
 			   dim: int,
 			   keepdim: bool = False,
-			   min_val: float = -1e7) -> (torch.Tensor, torch.Tensor):
+			   min_val: float = -1e7) -> Tuple[torch.Tensor, torch.Tensor]:
 	"""
 	To calculate max along certain dimensions on masked values
 	Parameters

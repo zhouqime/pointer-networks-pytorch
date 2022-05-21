@@ -2,6 +2,8 @@ import argparse
 import random
 import warnings
 
+from tqdm import tqdm
+
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -97,7 +99,8 @@ def main():
 	for epoch in range(args.epochs):
 		# Train
 		model.train()
-		for batch_idx, (seq, length, target) in enumerate(train_loader):
+		tq = tqdm(train_loader,total=len(train_loader), desc='Train Epoch {}'.format(epoch), unit='batch')
+		for batch_idx, (seq, length, target) in enumerate(tq):
 			seq, length, target = seq.to(device), length.to(device), target.to(device)
 
 			optimizer.zero_grad()
@@ -115,8 +118,9 @@ def main():
 			mask = mask[:, 0, :]
 			train_accuracy.update(masked_accuracy(argmax_pointer, target, mask).item(), mask.int().sum().item())
 
-			if batch_idx % 20 == 0:
-				print('Epoch {}: Train [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tAccuracy: {:.6f}'
+			if batch_idx % 20 == 0 or True:
+				tq.set_description('Epoch {} Train [{}/{} ({:.0f}%)] Loss: {:.6f} Accuracy: {:.6f}'
+				#print('Epoch {}: Train [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tAccuracy: {:.6f}'
 					  .format(epoch, batch_idx * len(seq), len(train_loader.dataset),
 							  100. * batch_idx / len(train_loader), train_loss.avg, train_accuracy.avg))
 
@@ -134,8 +138,10 @@ def main():
 
 			mask = mask[:, 0, :]
 			test_accuracy.update(masked_accuracy(argmax_pointer, target, mask).item(), mask.int().sum().item())
+			
 		print('Epoch {}: Test\tLoss: {:.6f}\tAccuracy: {:.6f}'.format(epoch, test_loss.avg, test_accuracy.avg))
 
+	
 
 if __name__ == '__main__':
 	main()
