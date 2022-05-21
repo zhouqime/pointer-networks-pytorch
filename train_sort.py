@@ -66,7 +66,7 @@ def masked_accuracy(output, target, mask):
 
 
 def main():
-	args = parser.parse_args()
+	args = parser.parse_args([])
 
 	if args.seed is not None:
 		random.seed(args.seed)
@@ -140,7 +140,7 @@ def main():
 			test_accuracy.update(masked_accuracy(argmax_pointer, target, mask).item(), mask.int().sum().item())
 			
 		print('Epoch {}: Test\tLoss: {:.6f}\tAccuracy: {:.6f}'.format(epoch, test_loss.avg, test_accuracy.avg))
-
+	return model,test_set,test_loader
 	
 
 if __name__ == '__main__':
