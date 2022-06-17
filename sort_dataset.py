@@ -3,7 +3,7 @@ import itertools
 import numpy as np
 import torch
 from torch.utils.data import Dataset
-
+import torch.sparse as S
 
 class IntegerSortDataset(Dataset):
 	def __init__(self, num_samples=10000, low=0, high=100, min_len=1, max_len=10, seed=1):
@@ -26,7 +26,7 @@ class IntegerSortDataset(Dataset):
 
 		i = torch.LongTensor(row_col_index)
 		v = torch.FloatTensor([1]*num_values)
-		data = torch.sparse.FloatTensor(i, v, torch.Size([len_seq, self.input_dim]))
+		data = S.FloatTensor(i, v, torch.Size([len_seq, self.input_dim]))
 
 		return data, len_seq, label
 
