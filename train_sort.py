@@ -12,23 +12,23 @@ import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
 
 
-from dataset import IntegerSortDataset, sparse_seq_collate_fn
+from sort_dataset import IntegerSortDataset, sparse_seq_collate_fn
 from model import PointerNet
 
 parser = argparse.ArgumentParser(description='PtrNet-Sorting-Integer')
 
 parser.add_argument('--low', type=int, default=0, help='lowest value in dataset (default: 0)')
 parser.add_argument('--high', type=int, default=100, help='highest value in dataset (default: 100)')
-parser.add_argument('--min-length', type=int, default=5, help='minimum length of sequences (default: 5)')
-parser.add_argument('--max-length', type=int, default=10, help='maximum length of sequences (default: 20)')
+parser.add_argument('--min-length', type=int, default=10, help='minimum length of sequences (default: 5)')
+parser.add_argument('--max-length', type=int, default=50, help='maximum length of sequences (default: 20)')
 parser.add_argument('--train-samples', type=int, default=100000, help='number of samples in train set (default: 100000)')
 parser.add_argument('--test-samples', type=int, default=1000, help='number of samples in test set (default: 1000)')
 
-parser.add_argument('--emb-dim', type=int, default=8, help='embedding dimension (default: 8)')
+parser.add_argument('--emb-dim', type=int, default=16, help='embedding dimension (default: 8)')
 parser.add_argument('--batch-size', type=int, default=256, help='input batch size for training (default: 256)')
 parser.add_argument('--epochs', type=int, default=100, help='number of epochs to train (default: 100)')
 
-parser.add_argument('--lr', type=float, default=1e-3, help='learning rate (default: 1e-3)')
+parser.add_argument('--lr', type=float, default=1e-1, help='learning rate (default: 1e-3)')
 parser.add_argument('--wd', default=1e-5, type=float, help='weight decay (default: 1e-5)')
 
 parser.add_argument('--workers', type=int, default=4, help='number of data loading workers (default: 4)')
@@ -124,22 +124,22 @@ def main():
 					  .format(epoch, batch_idx * len(seq), len(train_loader.dataset),
 							  100. * batch_idx / len(train_loader), train_loss.avg, train_accuracy.avg))
 
-		# Test
-		model.eval()
-		for seq, length, target in test_loader:
-			seq, length, target = seq.to(device), length.to(device), target.to(device)
+	# Test
+	model.eval()
+	for seq, length, target in test_loader:
+		seq, length, target = seq.to(device), length.to(device), target.to(device)
 
-			log_pointer_score, argmax_pointer, mask = model(seq, length)
-			unrolled = log_pointer_score.view(-1, log_pointer_score.size(-1))
-			loss = F.nll_loss(unrolled, target.view(-1), ignore_index=-1)
-			assert not np.isnan(loss.item()), 'Model diverged with loss = NaN'
+		log_pointer_score, argmax_pointer, mask = model(seq, length)
+		unrolled = log_pointer_score.view(-1, log_pointer_score.size(-1))
+		loss = F.nll_loss(unrolled, target.view(-1), ignore_index=-1)
+		assert not np.isnan(loss.item()), 'Model diverged with loss = NaN'
 
-			test_loss.update(loss.item(), seq.size(0))
+		test_loss.update(loss.item(), seq.size(0))
 
-			mask = mask[:, 0, :]
-			test_accuracy.update(masked_accuracy(argmax_pointer, target, mask).item(), mask.int().sum().item())
-			
-		print('Epoch {}: Test\tLoss: {:.6f}\tAccuracy: {:.6f}'.format(epoch, test_loss.avg, test_accuracy.avg))
+		mask = mask[:, 0, :]
+		test_accuracy.update(masked_accuracy(argmax_pointer, target, mask).item(), mask.int().sum().item())
+		
+	print('Epoch {}: Test\tLoss: {:.6f}\tAccuracy: {:.6f}'.format(epoch, test_loss.avg, test_accuracy.avg))
 	return model,test_set,test_loader
 	
 
